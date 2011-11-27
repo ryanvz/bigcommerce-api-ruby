@@ -5,87 +5,46 @@ module BigCommerce
 			@connection = Connection.new(configuration)
 		end
 		
-		def store_url=(store_url)
-		  @connection.store_url = store_url
-		end
-		
-		def username=(username)
-		  @connection.username = username
-		end
-		
-		def api_key=(api_key)
-		  @connection.api_key = api_key
-		end
-		
-		def verify_peer=(verify)
-		  @connection.verify_peer = verify
-		end
-		
-		def ca_file=(path)
-		  @connection.ca_file = path
-		end
+    #expose settings of the connection instance
+    %w(store_url username api_key verify_peer ca_file).each do |setting|
+      define_method "#{setting}=" do |value|
+        @connection.send "#{setting}=", value
+      end
+    end
 
-		def get_time
-			@connection.get '/time'
-		end
-
-		def get_products
-			@connection.get '/products'
-		end
-
-		def get_product(id)
-			@connection.get '/products/' + id
-		end
-
-		def get_categories
-			@connection.get '/categories'
-		end
-
-		def get_category(id)
-			@connection.get '/categories/' + id
-		end
-
-		def get_orders
-			@connection.get('/orders')
+		def method_missing(method_sym, *arguments, &block)
+		  action, resource, sub_resource = method_sym.to_s.split '_'
+      case action
+        when 'get'
+          if is_plural? resource
+            @connection.get "#{resource}/#{sub_resource}"
+          else
+            @connection.get "#{pluralize(resource)}/#{arguments.first}/#{sub_resource}"
+          end
+        when 'create'
+          @connection.post pluralize(resource), *arguments
+        when 'update'
+          @connection.put "#{pluralize(resource)}/#{arguments.first}", *arguments[1..-1]
+        when 'delete'
+          @connection.delete "#{resource}/#{arguments.first}"
+      end
 		end
 
 		def get_orders_by_date(date)
-			@connection.get '/orders?min_date_created=' + CGI::escape(date)
-		end
-
-		def get_orders_count
-			get_count @connection.get '/orders/count'
-		end
-
-		def get_order(id)
-			@connection.get '/orders/' + id
-		end
-
-		def get_order_products(id)
-			@connection.get '/orders/' + id + '/products'
-		end
-
-		def get_customers
-			@connection.get '/customers'
-		end
-
-		def get_customer(id)
-			@connection.get '/customers/' + id
+			@connection.get 'orders?min_date_created=' + CGI::escape(date)
 		end
 
 		private
-
-			def get_count(result)
-				result["count"]
-			end
-			
-			def get_resource(result)
-			  
-			end
-
-      def get_collection(result)
-        
+      def is_plural?(string)
+        string.end_with? 's'
       end
 
+      def pluralize(resource)
+        "#{resource}s"
+      end
+
+      def get_count(result)
+				result["count"]
+			end
 	end
 end
