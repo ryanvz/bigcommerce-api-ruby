@@ -25,8 +25,8 @@ module BigCommerce
           @connection.post pluralize(resource), *arguments
         when 'update'
           @connection.put "#{pluralize(resource)}/#{arguments.first}", *arguments[1..-1]
-        when 'delete'
-          @connection.delete "#{resource}/#{arguments.first}"
+        when 'delete','destroy'
+          @connection.delete "#{pluralize(resource)}/#{arguments.first}"
       end
 		end
 
