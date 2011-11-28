@@ -68,6 +68,43 @@ Usage
 
 The API object acts as a gateway to all top level resources in the V2 API.
 
+A list of items can be retrieved using the plural form
+```
+api.get_products
+```
+Individual resources can be queried using the singular form with an id as argument
+```
+api.get_customer(20)
+```
+Resources can be destoyed (DELETE) through the api object or through the returned resource object
+```
+> api.destroy_brand(11)
+>
+> api.get_brand(54).destroy!
+```
+Updates (PUT) can be also be done in multiple ways
+```
+> api.update_product(394, :name => 'Best product ever')
+>
+> api.get_product(382).update(:name => 'Another great product')
+>
+> product = api.get_product(430)
+> product.name = "The best product"
+> product.update!
+```
+Resources can be created by calling create_<resource> and passing in a hash of attributes
+```
+api.create_brand :name => 'Greatbrand'
+```
+Sub-resources can be accessed through their parent resource.
+
+```
+> api.get_customers.first.addresses
+>
+> api.get_product(243).images
+>
+```
+
 ```
 $ irb
 >
@@ -81,14 +118,11 @@ $ irb
 >
 > category = api.get_category(11)
 > category.name = "Laptops"
-> category.update
+> category.update!
 >
-> brand = BigCommerce::Api::Brand.new
-> brand.name = "Samsung"
-> brand.create
+> brand = api.create_brand :name => "Samsung"
 >
 > option = api.get_option(22)
-> option.delete
+> option.destroy!
 >
 ```
-
