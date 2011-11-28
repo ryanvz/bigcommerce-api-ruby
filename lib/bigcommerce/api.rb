@@ -13,14 +13,14 @@ module BigCommerce
     end
 
 		def method_missing(method_sym, *arguments, &block)
-		  action, resource, sub_resource = method_sym.to_s.split '_'
+		  action, resource, sub_resource = method_sym.to_s.gsub(/_where/,'').split '_'
       case action
         when 'get'
-          if is_plural? resource
-            @connection.get "#{resource}/#{sub_resource}"
-          else
-            @connection.get "#{pluralize(resource)}/#{arguments.first}/#{sub_resource}"
-          end
+          path = pluralise(resource)
+          query = '?' + arguments.first.map{|key,val|"#{key}=#{val}"}.join('&') if method_sym.to_s.end_with? 'where'
+          id = arguments.first if arguments.first.is_a? Fixnum
+          @connection.get [ pluralize(resource), id, sub_resource, query].compact.join('/')
+          #@connection.get "#{pluralize(resource)}#{'/'+arguments.first if arguments.first}/#{sub_resource}?#{query}"
         when 'create'
           @connection.post pluralize(resource), *arguments
         when 'update'
@@ -40,7 +40,7 @@ module BigCommerce
       end
 
       def pluralize(resource)
-        "#{resource}s"
+        is_plural?(resource) ? resource : "#{resource}s"
       end
 
       def get_count(result)
