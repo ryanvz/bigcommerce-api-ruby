@@ -1,7 +1,7 @@
 module BigCommerce
   class Connection
 
-	attr_accessor :store_url, :username, :api_key, :verify_peer
+	attr_accessor :store_url, :username, :api_key, :verify_peer, :proxy_host, :proxy_port
 
 	def initialize(configuration)
 	  configuration.each do |key,val|
@@ -55,8 +55,8 @@ module BigCommerce
 	end
 
 	def new_connection(uri)
-	  #http = Net::HTTP.new(uri.host,uri.port)
-	  http = Net::HTTP::Proxy('localhost','8080').new(uri.host,uri.port)
+    conn = @proxy_host ? Net::HTTP::Proxy(@proxy_host,@proxy_port || '8080') : Net::HTTP
+    http = conn.new(uri.host,uri.port)
     http.use_ssl = true
 	  http.verify_mode = @verify_peer ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
 	  http.ca_file = @ca_path if @ca_path
