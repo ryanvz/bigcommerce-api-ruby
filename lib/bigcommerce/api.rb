@@ -12,6 +12,10 @@ module BigCommerce
       end
     end
 
+    def requests_remaining
+      @connection.requests_remaining
+    end
+
 		def method_missing(method_sym, *arguments, &block)
 		  action, resource, sub_resource = method_sym.to_s.gsub(/_where/,'').split '_'
       case action
@@ -19,8 +23,12 @@ module BigCommerce
           path = pluralise(resource)
           query = '?' + arguments.first.map{|key,val|"#{key}=#{val}"}.join('&') if method_sym.to_s.end_with? 'where'
           id = arguments.first if arguments.first.is_a? Fixnum
-          @connection.get [ pluralize(resource), id, sub_resource, query].compact.join('/')
-          #@connection.get "#{pluralize(resource)}#{'/'+arguments.first if arguments.first}/#{sub_resource}?#{query}"
+          json = @connection.get [ pluralize(resource), id, sub_resource, query].compact.join('/')
+          if json.length == 1 and not json.values.first.is_a? Enumerable
+            json.values.first
+          else
+            json
+          end
         when 'create'
           @connection.post pluralize(resource), *arguments
         when 'update'
