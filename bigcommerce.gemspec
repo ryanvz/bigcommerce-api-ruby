@@ -1,5 +1,5 @@
 
-require 'lib/bigcommerce'
+require './lib/bigcommerce'
 
 Gem::Specification.new do |s|
   s.name     = "bigcommerce"

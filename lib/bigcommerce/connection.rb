@@ -23,6 +23,7 @@ module BigCommerce
 
 	def request(method, path, body = nil)
 	  uri = expand_uri(path)
+    puts "Getting #{uri}"
 	  http = new_connection(uri)
 	  
 	  request  = Net::HTTP.const_get(method.to_s.capitalize).new(uri.request_uri)
